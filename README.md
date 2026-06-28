@@ -2,7 +2,7 @@
 
 ## Project Name: TaskMatrix
 
-Description: A modern Kanban-based task management application inspired by Jira and Trello, designed to help individuals and teams organize projects efficiently.
+Description: TaskMatrix is a frontend task management application designed for a single software project with multiple team members. It focuses on Kanban-based task tracking, assignment, prioritization, and collaboration through a modern, responsive interface.
 
 ## Track
 
@@ -145,12 +145,6 @@ Objective: Prepare the application for production.
 * POST   /api/auth/register
 
 * GET    /api/auth/me
-
-### Projects
-
-* GET    /api/projects
-
-* GET    /api/projects/:id
 
 ### Tasks
 
