@@ -38,8 +38,6 @@ Objective: Build a functional task management interface.
 
 * Register UI
 
-* Protected Dashboard (Frontend only)
-
 #### Dashboard
 
 * Responsive Dashboard Layout
@@ -136,7 +134,7 @@ Objective: Prepare the application for production.
 
 ## State Tree Diagram
 
-![State Tree Diagram](atate-tree-diagram.png)
+![State Tree Diagram](state-tree-diagram.png)
 
 ## Mock API endpoints
 
