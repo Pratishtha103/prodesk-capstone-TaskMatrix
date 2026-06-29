@@ -136,6 +136,8 @@ Objective: Prepare the application for production.
 
 ## State Tree Diagram
 
+![State Tree Diagram](atate-tree-diagram.png)
+
 ## Mock API endpoints
 
 ### Authentication
