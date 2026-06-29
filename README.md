@@ -162,6 +162,10 @@ Objective: Prepare the application for production.
 
 * GET    /api/users
 
+### Activity
+
+* GET   /api/activity
+
 ### AI
 
 * POST   /api/ai/task-suggestion
