@@ -132,6 +132,8 @@ Objective: Prepare the application for production.
 
 ## Public Figma Wireframe Link
 
+https://www.figma.com/design/htQJiSsWDgoQWcXBtokjGV/TaskMatrix?node-id=3-2&t=8gqi1fa4x6wrxcDw-1
+
 ## State Tree Diagram
 
 ![State Tree Diagram](state-tree-diagram.png)
