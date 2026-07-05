@@ -1,3 +1,4 @@
+# Week 13
 "Give a brief intro for tool like Jira and Asana."
 
 "What are the common features seen in tools like Jira?"
@@ -39,3 +40,41 @@ Warning (Due Soon)
 Danger (Overdue/Delete)"
 
 "give me a font"
+
+# Week 14
+
+"Analyze phase 1 requirement a device an implementation plan to execute it based on last week's task
+Phase 1: Base Routing & Form Scaffolding (P0 - Mandatory) Completing this fulfills your minimum functional requirement.
+
+Routing: Scaffolding the core viewports within the Next.js App Router (/login, /register, /dashboard).
+
+UI Architecture: Construct the Login and Registration forms. High-fidelity styling is not required this sprint, but state management and input handling must be fully functional.
+"
+
+"Mention all the files and folders that need to be created/ edited and remember to keep client and server side rendering seperate"
+
+"What validation does a login / signup form need in an app like taskmatrix?"
+
+"Create Login and Register form with minimal function, utilize the figma wireframes for input fields. Do not improve UI yet."
+
+"make a summarized testing checklist for login and signup form"
+
+"For Phase 2
+Phase 2: BaaS Integration (P1 - Priority) We strongly recommend completing this to secure your auth pipeline.
+
+Authentication Logic: Interface your forms with Firebase Auth, Supabase Auth, or NextAuth.js.
+
+Verification: Prove that a user payload can successfully register an account and establish a logged-in state.,
+what are the steps to establish a Firebase Auth with TaskMatrix"
+
+"Implement each step and explain the code block by block"
+
+"Give a short test checklist for this phase"
+
+"create an implementation plan for Phase 3: Route Protection & Global State (P2 - Advanced) Engineers aiming for top performance reviews should execute these features. Protected Routes: Implement Next.js middleware or route guards. If an unauthenticated user attempts to hit /dashboard, the system must intercept and redirect them to /login. State Sync: Upon successful authentication, serialize the user's payload (Name, Email, UID) into your Redux/Zustand global store to hydrate the dashboard UI."
+
+"Implement each step and explain the code block by block"
+
+"Seperate client side components and routing pages"
+
+"Give a short test checklist for this phase"
