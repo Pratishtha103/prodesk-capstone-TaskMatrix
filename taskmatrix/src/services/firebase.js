@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
@@ -9,8 +9,6 @@ const firebaseConfig = {
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
-console.log("API KEY EXISTS:", !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
-console.log("API KEY VALUE:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
-console.log("AUTH DOMAIN:", process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN);
-const app = initializeApp(firebaseConfig);
+
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
