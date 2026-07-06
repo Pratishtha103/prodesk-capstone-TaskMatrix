@@ -14,11 +14,8 @@ export default function AuthProvider({ children }) {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    console.log("AuthProvider: Initializing onAuthStateChanged. Firebase API Key present:", !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
-    
     try {
       const unsubscribe = onAuthStateChanged(auth, (user) => {
-        console.log("AuthProvider: onAuthStateChanged event fired. User:", user);
         if (user) {
           dispatch(
             setUser({
@@ -34,10 +31,7 @@ export default function AuthProvider({ children }) {
         dispatch(setAuthReady(true));
       });
 
-      return () => {
-        console.log("AuthProvider: Unsubscribing from auth state listener");
-        unsubscribe();
-      };
+      return () => unsubscribe();
     } catch (error) {
       console.error("AuthProvider: Error during onAuthStateChanged subscription:", error);
     }
