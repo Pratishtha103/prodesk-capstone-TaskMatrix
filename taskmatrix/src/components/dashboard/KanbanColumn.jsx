@@ -1,6 +1,6 @@
 export default function KanbanColumn({ title, tasks }) {
   return (
-    <div className="rounded-lg border p-4 bg-white min-h-[300px]">
+    <div className="rounded-lg border p-4 bg-white min-h-75">
       <h3 className="mb-4 text-lg font-semibold">{title}</h3>
 
       <div className="space-y-3">

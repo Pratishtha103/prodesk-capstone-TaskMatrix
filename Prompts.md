@@ -78,3 +78,7 @@ what are the steps to establish a Firebase Auth with TaskMatrix"
 "Seperate client side components and routing pages"
 
 "Give a short test checklist for this phase"
+
+"implement usable kanban column"
+
+""
