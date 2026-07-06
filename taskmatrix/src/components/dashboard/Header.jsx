@@ -7,6 +7,7 @@ export default function Header({ user, onLogout }) {
 
       <div className="flex items-center gap-4">
         <span className="text-sm">{user?.email}</span>
+        <span className="text-sm">{user?.uid}</span>
         <button
           onClick={onLogout}
           className="border px-3 py-1 rounded"
