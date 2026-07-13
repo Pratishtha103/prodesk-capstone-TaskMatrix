@@ -1,0 +1,379 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { addTask, editTask, deleteTaskFromState } from "@/redux/features/taskSlice";
+import { createTask, updateTask, deleteTask, getAllUsers } from "@/services/taskService";
+import { isTaskOverdue } from "@/utils/date";
+
+export default function TaskModal({ isOpen, onClose, task }) {
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
+
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    priority: "Medium",
+    status: "todo",
+    dueDate: "",
+    assigneeId: "",
+    assigneeName: "",
+  });
+
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [registeredUsers, setRegisteredUsers] = useState([]);
+
+  useEffect(() => {
+    async function fetchUsers() {
+      try {
+        const usersList = await getAllUsers();
+        setRegisteredUsers(usersList);
+      } catch (err) {
+        console.error("Failed to load registered users:", err);
+      }
+    }
+
+    if (isOpen && user?.role === "Admin") {
+      fetchUsers();
+    }
+  }, [isOpen, user?.role]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSubmitting(false);
+      setError("");
+      setShowDeleteConfirm(false);
+      if (task) {
+        setFormData({
+          title: task.title || "",
+          description: task.description || "",
+          priority: task.priority || "Medium",
+          status: task.status || "todo",
+          dueDate: task.dueDate || "",
+          assigneeId: task.assigneeId || "",
+          assigneeName: task.assigneeName || "",
+        });
+      } else if (user) {
+        setFormData({
+          title: "",
+          description: "",
+          priority: "Medium",
+          status: "todo",
+          dueDate: "",
+          assigneeId: user.uid,
+          assigneeName: user.name || user.email || "Me",
+        });
+      }
+    }
+  }, [isOpen, task, user]);
+
+  if (!isOpen) return null;
+
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+
+  function handleAssigneeChange(e) {
+    const selectedId = e.target.value;
+    let name = "User";
+    if (user && selectedId === user.uid) {
+      name = user.name || user.email || "Me";
+    } else {
+      const member = registeredUsers.find((m) => m.id === selectedId);
+      if (member) {
+        name = member.name;
+      }
+    }
+    setFormData((prev) => ({
+      ...prev,
+      assigneeId: selectedId,
+      assigneeName: name,
+    }));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+
+    if (!formData.title.trim()) {
+      setError("Task title is required.");
+      return;
+    }
+
+    if (!formData.dueDate) {
+      setError("Due date is required.");
+      return;
+    }
+
+    if (!formData.assigneeId) {
+      setError("Assignee is required.");
+      return;
+    }
+
+    if (!user?.uid) {
+      setError("User not found.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+
+      if (task) {
+        // Edit flow
+        const updatedTask = await updateTask(task.id, {
+          ...formData,
+          createdAt: task.createdAt,
+          createdBy: task.createdBy,
+        });
+        dispatch(editTask(updatedTask));
+      } else {
+        // Create flow
+        const newTask = await createTask(formData, user);
+        dispatch(addTask(newTask));
+      }
+
+      onClose();
+    } catch (err) {
+      console.error(err);
+      setError(task ? "Failed to update task." : "Failed to create task.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function handleDeleteClick() {
+    setError("");
+    setShowDeleteConfirm(true);
+  }
+
+  async function confirmDeleteAction() {
+    if (!task) return;
+    try {
+      setSubmitting(true);
+      await deleteTask(task.id);
+      dispatch(deleteTaskFromState(task.id));
+      setShowDeleteConfirm(false);
+      onClose();
+    } catch (err) {
+      console.error(err);
+      setError("Failed to delete task.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-lg">
+        <h2 className="mb-4 text-xl font-semibold">
+          {task ? "Edit Task" : "Create Task"}
+        </h2>
+
+        {task && isTaskOverdue(task.dueDate, task.status) && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2 text-amber-800 text-sm">
+            <svg className="w-5 h-5 text-amber-500 fill-current flex-shrink-0" viewBox="0 0 20 20">
+              <path d="M8.219 2.068a1 1 0 011.562 0l7.354 10.366A1 1 0 0116.326 14H3.674a1 1 0 01-.781-1.566l7.326-10.366zM9 5v4a1 1 0 102 0V5a1 1 0 10-2 0zm1 7a1 1 0 100-2 1 1 0 000 2z" />
+            </svg>
+            <span className="font-medium">Alert: This task is overdue! Please update its status or adjust the due date.</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">
+              Task Title
+            </label>
+            <input
+              type="text"
+              name="title"
+              placeholder="Task title"
+              value={formData.title}
+              disabled={user?.role !== "Admin"}
+              onChange={handleChange}
+              className="w-full rounded-md border border-secondary px-3 py-2 text-text-main bg-white disabled:bg-gray-100 disabled:text-text-muted"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">
+              Description (Optional)
+            </label>
+            <textarea
+              name="description"
+              placeholder="Description"
+              value={formData.description}
+              disabled={user?.role !== "Admin"}
+              onChange={handleChange}
+              className="w-full rounded-md border border-secondary px-3 py-2 text-text-main bg-white disabled:bg-gray-100 disabled:text-text-muted"
+              rows={4}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">
+                Priority
+              </label>
+              <select
+                name="priority"
+                value={formData.priority}
+                disabled={user?.role !== "Admin"}
+                onChange={handleChange}
+                className="w-full rounded-md border border-secondary px-3 py-2 text-text-main bg-white disabled:bg-gray-100 disabled:text-text-muted"
+              >
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">
+                Status
+              </label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="w-full rounded-md border border-secondary px-3 py-2 text-text-main bg-white"
+              >
+                <option value="todo">To Do</option>
+                <option value="inprogress">In Progress</option>
+                <option value="done">Done</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">
+                Assignee
+              </label>
+              <select
+                name="assigneeId"
+                value={formData.assigneeId}
+                disabled={user?.role !== "Admin"}
+                onChange={handleAssigneeChange}
+                className="w-full rounded-md border border-secondary px-3 py-2 text-text-main bg-white disabled:bg-gray-100 disabled:text-text-muted"
+              >
+                <option value="">Select Assignee</option>
+                {user && (
+                  <option value={user.uid}>
+                    Me ({user.name || user.email || "User"})
+                  </option>
+                )}
+                {registeredUsers
+                  .filter((member) => member.id !== user?.uid && member.email !== user?.email)
+                  .map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">
+                Due Date
+              </label>
+              <input
+                type="date"
+                name="dueDate"
+                value={formData.dueDate}
+                disabled={user?.role !== "Admin"}
+                onChange={handleChange}
+                className="w-full rounded-md border border-secondary px-3 py-2 text-text-main bg-white disabled:bg-gray-100 disabled:text-text-muted"
+              />
+            </div>
+          </div>
+
+          {error && <p className="text-sm text-red-500">{error}</p>}
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-secondary">
+            {task && user?.role === "Admin" && (
+              <button
+                type="button"
+                onClick={handleDeleteClick}
+                disabled={submitting}
+                className="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 transition-colors mr-auto"
+              >
+                Delete
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-md border border-secondary px-4 py-2 hover:bg-gray-50 transition-colors text-text-main"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="rounded-md bg-black px-4 py-2 text-white hover:bg-black/90 transition-colors"
+            >
+              {submitting
+                ? task
+                  ? "Saving..."
+                  : "Creating..."
+                : task
+                ? "Save Changes"
+                : "Create Task"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl border border-secondary space-y-4">
+            <div className="flex items-center gap-3 text-red-600">
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+              <h3 className="text-lg font-bold">Delete Task</h3>
+            </div>
+            <p className="text-sm text-text-muted">
+              Are you sure you want to delete <strong>"{formData.title}"</strong>? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="rounded-md border border-secondary px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-text-main"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteAction}
+                disabled={submitting}
+                className="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 transition-colors text-sm font-semibold"
+              >
+                {submitting ? "Deleting..." : "Yes, Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

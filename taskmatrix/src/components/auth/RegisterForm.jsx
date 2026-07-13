@@ -4,8 +4,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/services/firebase";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "@/services/firebase";
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -58,7 +59,19 @@ export default function SignUp() {
             password
         );
 
-        console.log("Firebase user created:", userCredential.user);
+        // Update auth displayName profile field
+        await updateProfile(userCredential.user, {
+            displayName: username,
+        });
+
+        // Store user profile details and role in Firestore
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+            username,
+            email,
+            role,
+        });
+
+        console.log("Firebase user created and stored in Firestore:", userCredential.user);
 
         setSuccess("Account created successfully! Redirecting to login...");
 

@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import { useDispatch } from "react-redux";
-import { auth } from "@/services/firebase";
+import { auth, db } from "@/services/firebase";
 import { setUser } from "@/redux/features/authSlice";
 
 export default function LoginForm() {
@@ -51,11 +52,25 @@ export default function LoginForm() {
 
       const user = userCredential.user;
 
+      // Fetch user profile from Firestore to check their registered role
+      const userDocSnap = await getDoc(doc(db, "users", user.uid));
+      let dbRole = "Member";
+      if (userDocSnap.exists()) {
+        dbRole = userDocSnap.data().role || "Member";
+      }
+
+      if (dbRole !== role) {
+        await signOut(auth);
+        setError("Invalid role selection for this account.");
+        return;
+      }
+
       dispatch(
         setUser({
           uid: user.uid,
           email: user.email,
           name: user.displayName || "User",
+          role: dbRole,
         })
       );
 

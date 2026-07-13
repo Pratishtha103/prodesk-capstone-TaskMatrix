@@ -81,4 +81,50 @@ what are the steps to establish a Firebase Auth with TaskMatrix"
 
 "implement usable kanban column"
 
+# Week 15
+
+"Analyze the requirements for this sprint and make a comprehensive implementation plan for the requirements mentioned, including every file changed/created and why"
+
+"Implement Phase 1 read and create task features and give a testing checklist to manually test the features"
+
+"Implement Phase 2 update and delete task features and give a testing checklist to manually test the features"
+
+"Create an implementation plan for filtering and introducing charts"
+
+"Implement and provide manual testing checklist to test the feature"
+
+"Create an implementation plan for drag and drop"
+
+"Implement and provide manual testing checklist to test the feature"
+
+"I had initially created this store, how is this mapped with my current store, what new things are added or old are updated?"
+
+"is the deadline crossed job feature implemented? has it been mentioned in the readme? when a task exceeds the duedate, a small yellow triangle with ! appears in the task item, indicating overdue, tell me where is this mentioned in the project?"
+
+"If this feature were to be implemented, how would it be done?"
+
+"Create a detailed implementation plan for part 1 and part 2 approach B"
+
+"Proceed with the implementation"
+
+"Instead of showing the medium/high batch on the task card, let the color of the border tell the user what priority it is. currently the Ui shows only a a left border, make it a full border"
+
+"How can I make the sidebar non-scrollable with the dashboard/ other components ( like activity dashboard...), however, inside the sidebar, user can scroll, if the number of members increase."
+
+"the taskmatrix beside the logo, make its color like the blue in the logo"
+
+"do not hardcode the color"
+
+"are there other hardcoded colors in the project"
+
+"create a color for secondary, text and text-muted in globals.css. use these colors in entire project, secondary for borders(header + sidebar), text and text muted for text, except for priority bagde, charts, overdue tasks"
+
+"Replace the logout text in header with a logout icon from lucide-react library I installed"
+
+"what borders radius are being used for different components"
+
+"link logo to dashboard, when logo is clicked dashboard url with dashboard panel opens"
+
+"keep the dashboard background muted, but other components like search and filter, knaban boards, should have a white bg so it looks separate"
+
 ""
