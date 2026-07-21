@@ -106,14 +106,14 @@ export default function AnalyticsPanel({ tasks }) {
     <div className="space-y-6">
       {/* Metric Cards Row */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border bg-white p-5 shadow-sm">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        <div className="rounded-xl border border-primary/20 bg-primary/1 p-5 shadow-sm hover:-translate-y-0.5 transition-all duration-200 hover:shadow-md">
+          <p className="text-xs font-semibold text-primary uppercase tracking-wider">
             Total Tasks
           </p>
-          <p className="mt-2 text-3xl font-bold text-gray-900">{tasks.length}</p>
+          <p className="mt-2 text-3xl font-bold text-primary">{tasks.length}</p>
         </div>
 
-        <div className="rounded-xl border border-emerald-100 bg-emerald-50/20 p-5 shadow-sm">
+        <div className="rounded-xl border border-emerald-100 bg-emerald-50/20 p-5 shadow-sm hover:-translate-y-0.5 transition-all duration-200 hover:shadow-md">
           <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">
             Completed
           </p>
@@ -122,7 +122,7 @@ export default function AnalyticsPanel({ tasks }) {
           </p>
         </div>
 
-        <div className="rounded-xl border border-amber-100 bg-amber-50/20 p-5 shadow-sm">
+        <div className="rounded-xl border border-amber-100 bg-amber-50/20 p-5 shadow-sm hover:-translate-y-0.5 transition-all duration-200 hover:shadow-md">
           <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider">
             In Progress
           </p>
@@ -131,7 +131,7 @@ export default function AnalyticsPanel({ tasks }) {
           </p>
         </div>
 
-        <div className="rounded-xl border border-red-100 bg-red-50/20 p-5 shadow-sm">
+        <div className="rounded-xl border border-red-100 bg-red-50/20 p-5 shadow-sm hover:-translate-y-0.5 transition-all duration-200 hover:shadow-md">
           <p className="text-xs font-semibold text-red-700 uppercase tracking-wider">
             Pending (To Do)
           </p>
@@ -143,20 +143,20 @@ export default function AnalyticsPanel({ tasks }) {
 
       {/* Charts Row */}
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-xl border bg-white p-5 shadow-sm flex flex-col h-[350px]">
+        <div className="rounded-xl border border-secondary bg-white p-5 shadow-sm flex flex-col h-[350px]">
           <h4 className="text-sm font-semibold text-gray-800 mb-4">
             Tasks by Status
           </h4>
-          <div className="relative flex-1">
+          <div className="relative w-full h-[250px]">
             <Doughnut data={statusData} options={chartOptions} />
           </div>
         </div>
 
-        <div className="rounded-xl border bg-white p-5 shadow-sm flex flex-col h-[350px]">
+        <div className="rounded-xl border border-secondary bg-white p-5 shadow-sm flex flex-col h-[350px]">
           <h4 className="text-sm font-semibold text-gray-800 mb-4">
             Tasks by Priority
           </h4>
-          <div className="relative flex-1">
+          <div className="relative w-full h-[250px]">
             <Bar
               data={priorityData}
               options={{

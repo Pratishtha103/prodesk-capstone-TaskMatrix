@@ -21,14 +21,18 @@ export default function AuthProvider({ children }) {
           try {
             const userDocSnap = await getDoc(doc(db, "users", user.uid));
             let role = "Member";
+            let name = "User";
             if (userDocSnap.exists()) {
               role = userDocSnap.data().role || "Member";
+              name = userDocSnap.data().username || userDocSnap.data().name || user.displayName || "User";
+            } else {
+              name = user.displayName || "User";
             }
             dispatch(
               setUser({
                 uid: user.uid,
                 email: user.email,
-                name: user.displayName || "User",
+                name: name,
                 role: role,
               })
             );

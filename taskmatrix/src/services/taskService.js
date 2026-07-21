@@ -21,6 +21,7 @@ function formatTask(docSnap) {
   return {
     id: docSnap.id,
     ...data,
+    subtasks: data.subtasks || [],
     createdAt: data.createdAt?.toDate?.().toISOString() || null,
   };
 }
@@ -55,6 +56,7 @@ export async function createTask(taskData, user) {
     createdBy: user.uid,
     assigneeId: taskData.assigneeId,
     assigneeName: taskData.assigneeName,
+    subtasks: taskData.subtasks || [],
     createdAt: serverTimestamp(),
   };
 
@@ -74,6 +76,7 @@ export async function updateTask(taskId, updatedData) {
     dueDate: updatedData.dueDate,
     assigneeId: updatedData.assigneeId,
     assigneeName: updatedData.assigneeName,
+    subtasks: updatedData.subtasks || [],
   };
 
   await updateDoc(taskDocRef, payload);

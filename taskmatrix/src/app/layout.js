@@ -2,6 +2,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import ReduxProvider from "@/redux/ReduxProvider";
 import AuthProvider from "@/components/providers/AuthProvider";
+import { Toaster } from "react-hot-toast";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -22,7 +23,10 @@ export default function RootLayout({ children }) {
     >
       <body className="min-h-full flex flex-col">
         <ReduxProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <Toaster position="top-right" reverseOrder={false} />
+            {children}
+          </AuthProvider>
         </ReduxProvider>
       </body>
     </html>

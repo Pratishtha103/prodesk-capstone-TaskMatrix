@@ -1,7 +1,9 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
+import { ClipboardList } from "lucide-react";
 import DraggableTaskCard from "./DraggableTaskCard";
+import EmptyState from "../common/EmptyState";
 
 export default function KanbanColumn({ id, title, tasks, onTaskClick }) {
   const { setNodeRef, isOver } = useDroppable({
@@ -11,7 +13,7 @@ export default function KanbanColumn({ id, title, tasks, onTaskClick }) {
   return (
     <div
       ref={setNodeRef}
-      className={`rounded-xl border p-4 min-h-[350px] transition-colors duration-200 ${
+      className={`rounded-xl border p-4 min-h-87.5 transition-colors duration-200 ${
         isOver ? "bg-indigo-50/50 border-indigo-200" : "bg-white border-secondary"
       }`}
     >
@@ -24,9 +26,11 @@ export default function KanbanColumn({ id, title, tasks, onTaskClick }) {
 
       <div className="space-y-3">
         {tasks.length === 0 ? (
-          <div className="rounded-md border border-dashed border-gray-200 p-8 text-center bg-white">
-            <p className="text-sm text-gray-400">No tasks</p>
-          </div>
+          <EmptyState
+            title="No tasks"
+            description="Drag or create a task here."
+            icon={ClipboardList}
+          />
         ) : (
           tasks.map((task) => (
             <DraggableTaskCard

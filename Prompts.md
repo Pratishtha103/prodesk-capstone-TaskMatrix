@@ -127,4 +127,34 @@ what are the steps to establish a Firebase Auth with TaskMatrix"
 
 "keep the dashboard background muted, but other components like search and filter, knaban boards, should have a white bg so it looks separate"
 
+# Week 16
+
+"What mock api endpoints in the current project am i using?"
+
+"If you were to map the api endpoints from my readme.md what has been implemented?"
+
+"What other AI integration I can perform for this project, except desc suggestion."
+
+"I like the second one, which one do you think is best for a project like this?"
+
+"These are the figma design for login and register page, create an implementation plan for phase one, include the login, register page styling too"
+
+"Every task, has to have a unique id and duedate can't be optional, only desc can be optional, every task will have an assignee id and name, to which the task is being assigned to"
+
+"proceed with the implementation plan and create a manual testing checklist to test the feature"
+
+"when a task is deleted, and the task modal is opened for another task, the delete and saving button, say delteing and saving, why is the save and delete not happening instantly"
+
+"when a task is added in the column, the length must not increase for all the column, if a task is added in todo, only todo column should expand to contain the task"
+
+"the delete confirmation should be a modal of itself, do not use window.confirm()"
+
+"implement toast for all success and error message across the application"
+
+"create reusable footer content that will stay with each page"
+
+"how to implement loading skeleton screens"
+
+"what can an empty screen look like, for tasks"
+
 ""
