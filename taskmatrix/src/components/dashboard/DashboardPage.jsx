@@ -299,6 +299,7 @@ export default function DashboardPage() {
                     </svg>
                   </span>
                   <input
+                    aria-label="Search tasks"
                     type="text"
                     placeholder="Search tasks..."
                     value={searchQuery}
@@ -309,6 +310,7 @@ export default function DashboardPage() {
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
                   <select
+                    aria-label="Filter tasks by priority"
                     value={priorityFilter}
                     onChange={(e) => setPriorityFilter(e.target.value)}
                     className="w-full sm:w-auto rounded-md border border-secondary px-3 py-2 text-sm text-text-main bg-surface focus:ring-2 focus:ring-indigo-500"
@@ -321,6 +323,7 @@ export default function DashboardPage() {
 
                   {user?.role === "Admin" && (
                     <select
+                      aria-label="Filter tasks by assignee"
                       value={assigneeFilter}
                       onChange={(e) => setAssigneeFilter(e.target.value)}
                       className="w-full sm:w-auto rounded-md border border-secondary px-3 py-2 text-sm text-text-main bg-surface focus:ring-2 focus:ring-indigo-500"
