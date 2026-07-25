@@ -157,4 +157,31 @@ what are the steps to establish a Firebase Auth with TaskMatrix"
 
 "what can an empty screen look like, for tasks"
 
-""
+"implement toast notification for error and success messages"
+
+"create a global footer component with relevant copyright text TaskMatrix 2026"
+
+"how to achieve similar behaviour for footer as other children components"
+
+"how to implement scroll behaviour of footer exactly like the children components"
+
+"Create a empty task banner for kanban boards when tasks are not present"
+
+"the sign in and sign up form will have inline form validation, device a plan and test checklist"
+
+"Create a Global theme toggle implementation plan and testing checklist"
+
+"the metric cards and analytic charts appear a little bright in the dark theme, make their bg a little darker"
+
+"update the implementation plan for activity feed to include only the past 24 hr activities visible in the feed"
+
+# Week 17
+
+"what is expected of this task Phase 3: The Lighthouse Audit (P2 - Advanced) Performance Profiling: Navigate to your LIVE URL in Chromium. Open DevTools → Lighthouse → "Analyze page load". Optimization Target: You must achieve a score of 90+ in both "Performance" and "Accessibility"
+
+"current score 94 Performance 95 Accessibility, will adding aria labels in select for filter dropdowns increase this score
+Failing Elements
+All Priorities Low Priority Medium Priority High Priority
+<select class="w-full sm:w-auto rounded-md border border-secondary px-3 py-2 text-sm text…">
+All Assignees Me (AdminTaskMatrix) Membertest
+<select class="w-full sm:w-auto rounded-md border border-secondary px-3 py-2 text-sm text…">"
