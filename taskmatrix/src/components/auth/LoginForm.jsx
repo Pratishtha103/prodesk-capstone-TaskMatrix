@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { useDispatch, useSelector } from "react-redux";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Sun, Moon } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { auth, db } from "@/services/firebase";
 import { setUser } from "@/redux/features/authSlice";
 import Footer from "@/components/common/Footer";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function LoginForm() {
   const [formData, setFormData] = useState({
@@ -19,10 +20,12 @@ export default function LoginForm() {
     password: "",
   });
 
+  const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
 
   const router = useRouter();
   const dispatch = useDispatch();
+  const { theme, toggleTheme } = useTheme();
 
   const { isAuthenticated, isAuthReady } = useSelector(
     (state) => state.auth
@@ -41,17 +44,37 @@ export default function LoginForm() {
       ...prev,
       [name]: value,
     }));
+
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+  }
+
+  function validate() {
+    const tempErrors = {};
+    if (!formData.role) {
+      tempErrors.role = "Please select a role.";
+    }
+    if (!formData.email) {
+      tempErrors.email = "Email is required.";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      tempErrors.email = "Invalid email format.";
+    }
+    if (!formData.password) {
+      tempErrors.password = "Password is required.";
+    }
+    setErrors(tempErrors);
+    return Object.keys(tempErrors).length === 0;
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (!validate()) return;
 
     const { role, email, password } = formData;
-
-    if (!role || !email || !password) {
-      toast.error("Please fill all fields.");
-      return;
-    }
 
     try {
       const userCredential = await signInWithEmailAndPassword(
@@ -75,6 +98,9 @@ export default function LoginForm() {
 
       if (dbRole !== role) {
         await signOut(auth);
+        setErrors({
+          role: "Invalid role selection for this account.",
+        });
         toast.error("Invalid role selection for this account.");
         return;
       }
@@ -94,51 +120,77 @@ export default function LoginForm() {
         router.push("/dashboard");
       }, 1000);
     } catch (err) {
-      let msg = "Login failed. Try again.";
+      console.error(err);
       if (
         err.code === "auth/invalid-credential" ||
         err.code === "auth/user-not-found" ||
         err.code === "auth/wrong-password"
       ) {
-        msg = "Invalid email or password.";
+        setErrors({
+          email: "Invalid email or password.",
+          password: "Invalid email or password.",
+        });
+        toast.error("Invalid email or password.");
       } else if (err.code === "auth/invalid-email") {
-        msg = "Invalid email format.";
+        setErrors({
+          email: "Invalid email format.",
+        });
+        toast.error("Invalid email format.");
+      } else {
+        toast.error("Login failed. Try again.");
       }
-      toast.error(msg);
     }
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white font-sans">
+    <div className="flex-1 flex flex-col bg-background font-sans">
       {/* Top Header */}
-      <div className="w-full flex items-center justify-center gap-2 p-3.5 border-b border-secondary">
+      <div className="w-full flex items-center justify-between p-3.5 border-b border-secondary bg-surface shrink-0">
+        <div className="w-8" />
+        <div className="flex items-center gap-2">
           <img src="/Logo.png" alt="TaskMatrix Logo" className="w-7 h-7 object-contain" />
           <h1 className="text-xl font-semibold text-primary">TaskMatrix</h1>
+        </div>
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="p-1.5 rounded-md text-text-muted hover:bg-surface-muted hover:text-text-main transition-colors cursor-pointer"
+          title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        >
+          {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        </button>
       </div>
 
       {/* Main Container */}
-      <div className="flex-1 flex items-center justify-center p-4 bg-white">
-        <div className="w-full max-w-88 sm:max-w-96 bg-white border border-gray-200/60 rounded-xl p-6 sm:p-7 shadow-sm">
-          <h2 className="text-xl font-medium text-center text-gray-900 mb-6">Sign In</h2>
+      <div className="flex-1 flex items-center justify-center p-4 bg-background">
+        <div className="w-full max-w-88 sm:max-w-96 bg-surface border border-secondary rounded-xl p-6 sm:p-7 shadow-sm">
+          <h2 className="text-xl font-medium text-center text-text-main mb-6">Sign In</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Role Select */}
-            <div className="relative">
-              <select 
-                name="role" 
-                value={formData.role} 
-                onChange={handleChange}
-                className="w-full rounded-lg bg-gray-100 border-none outline-none focus:ring-2 focus:ring-[#5c54e5]/20 px-3.5 py-2.5 text-gray-650 placeholder-gray-400 text-sm appearance-none cursor-pointer"
-              >
-                <option value="">Select Role</option>
-                <option value="Admin">Admin</option>
-                <option value="Member">Member</option>
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-gray-500">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
-                </svg>
+            <div>
+              <div className="relative">
+                <select 
+                  name="role" 
+                  value={formData.role} 
+                  onChange={handleChange}
+                  className={`w-full rounded-lg bg-surface-muted border outline-none focus:ring-2 focus:ring-indigo-500/50 px-3.5 py-2.5 text-text-main placeholder-text-muted text-sm appearance-none cursor-pointer ${
+                    errors.role ? "border-red-500 focus:ring-red-500/20" : "border-transparent"
+                  }`}
+                >
+                  <option value="">Select Role</option>
+                  <option value="Admin">Admin</option>
+                  <option value="Member">Member</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-text-muted">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
+              {errors.role && (
+                <p className="text-xs text-red-500 mt-1 pl-1">{errors.role}</p>
+              )}
             </div>
 
             {/* Username/Email Input */}
@@ -149,32 +201,44 @@ export default function LoginForm() {
                 placeholder="Username"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full rounded-lg bg-gray-100 border-none outline-none focus:ring-2 focus:ring-[#5c54e5]/20 px-3.5 py-2.5 text-gray-650 placeholder-gray-400 text-sm"
+                className={`w-full rounded-lg bg-surface-muted border outline-none focus:ring-2 focus:ring-indigo-500/50 px-3.5 py-2.5 text-text-main placeholder-text-muted text-sm ${
+                  errors.email ? "border-red-500 focus:ring-red-500/20" : "border-transparent"
+                }`}
               />
+              {errors.email && (
+                <p className="text-xs text-red-500 mt-1 pl-1">{errors.email}</p>
+              )}
             </div>
 
             {/* Password Input */}
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full rounded-lg bg-gray-100 border-none outline-none focus:ring-2 focus:ring-[#5c54e5]/20 pl-3.5 pr-10 py-2.5 text-gray-650 placeholder-gray-400 text-sm"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-gray-450 hover:text-gray-600 cursor-pointer"
-                title={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? (
-                  <EyeOff className="w-4.5 h-4.5" />
-                ) : (
-                  <Eye className="w-4.5 h-4.5" />
-                )}
-              </button>
+            <div>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`w-full rounded-lg bg-surface-muted border outline-none focus:ring-2 focus:ring-indigo-500/50 pl-3.5 pr-10 py-2.5 text-text-main placeholder-text-muted text-sm ${
+                    errors.password ? "border-red-500 focus:ring-red-500/20" : "border-transparent"
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-text-muted hover:text-text-main cursor-pointer"
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4.5 h-4.5" />
+                  ) : (
+                    <Eye className="w-4.5 h-4.5" />
+                  )}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-xs text-red-500 mt-1 pl-1">{errors.password}</p>
+              )}
             </div>
 
             <button 
@@ -185,7 +249,7 @@ export default function LoginForm() {
             </button>
           </form>
 
-          <p className="text-center text-xs text-gray-500 mt-5 select-none">
+          <p className="text-center text-xs text-text-muted mt-5 select-none">
             Are you a new user? <Link href="/register" className="text-[#5c54e5] font-semibold hover:underline">Sign Up</Link>
           </p>
         </div>

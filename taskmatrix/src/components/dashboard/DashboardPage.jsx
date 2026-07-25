@@ -12,6 +12,7 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import KanbanColumn from "./KanbanColumn";
 import AnalyticsPanel from "./AnalyticsPanel";
+import ActivityPage from "./ActivityPage";
 import Footer from "@/components/common/Footer";
 import TaskCardSkeleton from "./TaskCardSkeleton";
 import EmptyState from "@/components/common/EmptyState";
@@ -118,7 +119,7 @@ export default function DashboardPage() {
     toast.success(`Task moved to ${statusLabel}`);
 
     try {
-      await updateTask(taskId, updatedTask);
+      await updateTask(taskId, updatedTask, user, taskToMove);
     } catch (err) {
       console.error("Failed to update status on drag and drop:", err);
       // Revert status on failure
@@ -208,7 +209,7 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
+    <div className="flex flex-col h-screen overflow-hidden bg-background">
      
       <Header 
         user={user} 
@@ -238,17 +239,23 @@ export default function DashboardPage() {
           teamMembers={uniqueTeamMembers} 
         />      
 
-        <div className="flex-1 overflow-y-auto min-w-0 flex flex-col justify-between h-full bg-gray-50">
+        <div className="flex-1 overflow-y-auto min-w-0 flex flex-col justify-between h-full bg-background">
           <main className="p-4 sm:p-6 space-y-8">
             <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-bold text-text-main">
-                  {activeView === "board" ? "Project Overview" : "Analytics Dashboard"}
+                  {activeView === "board" 
+                    ? "Project Overview" 
+                    : activeView === "analytics" 
+                    ? "Analytics Dashboard" 
+                    : "Activity Feed"}
                 </h2>
                 <p className="text-sm text-text-muted">
                   {activeView === "board"
                     ? `Welcome back, ${user?.name || "User"}`
-                    : "Aggregate task metrics and performance charts."}
+                    : activeView === "analytics"
+                    ? "Aggregate task metrics and performance charts."
+                    : "Track recent task actions and team progress."}
                 </p>
               </div>
 
@@ -258,7 +265,7 @@ export default function DashboardPage() {
                     setActiveTask(null);
                     setIsTaskModalOpen(true);
                   }}
-                  className="rounded-md border bg-black text-white hover:bg-black/90 px-4 py-2 text-sm font-semibold transition-colors shadow-sm"
+                  className="rounded-md border bg-black dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white hover:bg-black/90 px-4 py-2 text-sm font-semibold transition-colors shadow-sm"
                 >
                   + Create Task
                 </button>
@@ -284,7 +291,7 @@ export default function DashboardPage() {
             )}
 
             {activeView === "board" && (
-              <section className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between bg-white p-4 rounded-lg border border-secondary shadow-sm">
+              <section className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between bg-surface p-4 rounded-lg border border-secondary shadow-sm">
                 <div className="flex-1 w-full relative">
                   <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -296,7 +303,7 @@ export default function DashboardPage() {
                     placeholder="Search tasks..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-secondary rounded-md text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full pl-10 pr-4 py-2 border border-secondary rounded-md text-sm text-text-main bg-surface focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   />
                 </div>
 
@@ -304,7 +311,7 @@ export default function DashboardPage() {
                   <select
                     value={priorityFilter}
                     onChange={(e) => setPriorityFilter(e.target.value)}
-                    className="w-full sm:w-auto rounded-md border border-secondary px-3 py-2 text-sm text-text-main bg-white focus:ring-2 focus:ring-indigo-500"
+                    className="w-full sm:w-auto rounded-md border border-secondary px-3 py-2 text-sm text-text-main bg-surface focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="All">All Priorities</option>
                     <option value="Low">Low Priority</option>
@@ -316,7 +323,7 @@ export default function DashboardPage() {
                     <select
                       value={assigneeFilter}
                       onChange={(e) => setAssigneeFilter(e.target.value)}
-                      className="w-full sm:w-auto rounded-md border border-secondary px-3 py-2 text-sm text-text-main bg-white focus:ring-2 focus:ring-indigo-500"
+                      className="w-full sm:w-auto rounded-md border border-secondary px-3 py-2 text-sm text-text-main bg-surface focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="All">All Assignees</option>
                       {user && (
@@ -352,29 +359,29 @@ export default function DashboardPage() {
 
             {loading ? (
               <div className="grid gap-4 md:grid-cols-3 items-start">
-                <div className="rounded-xl border border-secondary p-4 bg-white min-h-87.5">
+                <div className="rounded-xl border border-secondary p-4 bg-surface min-h-87.5">
                   <h3 className="mb-4 text-lg font-semibold text-text-main flex items-center justify-between">
                     <span>To Do</span>
-                    <span className="w-5 h-5 bg-gray-200 animate-pulse rounded-full"></span>
+                    <span className="w-5 h-5 bg-secondary/60 animate-pulse rounded-full"></span>
                   </h3>
                   <div className="space-y-3">
                     <TaskCardSkeleton />
                     <TaskCardSkeleton />
                   </div>
                 </div>
-                <div className="rounded-xl border border-secondary p-4 bg-white min-h-87.5">
+                <div className="rounded-xl border border-secondary p-4 bg-surface min-h-87.5">
                   <h3 className="mb-4 text-lg font-semibold text-text-main flex items-center justify-between">
                     <span>In Progress</span>
-                    <span className="w-5 h-5 bg-gray-200 animate-pulse rounded-full"></span>
+                    <span className="w-5 h-5 bg-secondary/60 animate-pulse rounded-full"></span>
                   </h3>
                   <div className="space-y-3">
                     <TaskCardSkeleton />
                   </div>
                 </div>
-                <div className="rounded-xl border border-secondary p-4 bg-white min-h-87.5">
+                <div className="rounded-xl border border-secondary p-4 bg-surface min-h-87.5">
                   <h3 className="mb-4 text-lg font-semibold text-text-main flex items-center justify-between">
                     <span>Done</span>
-                    <span className="w-5 h-5 bg-gray-200 animate-pulse rounded-full"></span>
+                    <span className="w-5 h-5 bg-secondary/60 animate-pulse rounded-full"></span>
                   </h3>
                   <div className="space-y-3">
                     <TaskCardSkeleton />
@@ -433,8 +440,10 @@ export default function DashboardPage() {
                   </DndContext>
                 </section>
               )
-            ) : (
+            ) : activeView === "analytics" ? (
               <AnalyticsPanel tasks={tasks} />
+            ) : (
+              <ActivityPage />
             )}
           </main>
 

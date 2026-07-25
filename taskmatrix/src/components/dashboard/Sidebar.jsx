@@ -13,9 +13,9 @@ export default function Sidebar({ currentView, onViewChange, isOpen, onClose, te
   };
 
   return (
-    <aside className={`fixed md:relative inset-y-0 left-0 z-40 md:z-auto h-full overflow-y-auto border-r border-secondary bg-white flex flex-col justify-between transition-all duration-300 ease-in-out ${
-      isOpen 
-        ? "w-64 p-4 translate-x-0" 
+    <aside className={`fixed md:relative inset-y-0 left-0 z-40 md:z-auto h-full overflow-y-auto border-r border-secondary bg-surface flex flex-col justify-between transition-all duration-300 ease-in-out ${
+      isOpen
+        ? "w-64 p-4 translate-x-0"
         : "-translate-x-full md:translate-x-0 w-0 p-0 border-none overflow-hidden"
     }`}>
       <div className="space-y-6">
@@ -25,9 +25,9 @@ export default function Sidebar({ currentView, onViewChange, isOpen, onClose, te
             <img src="/Logo.png" alt="TaskMatrix Logo" className="w-6 h-6 object-contain" />
             <span className="text-lg font-semibold text-primary">TaskMatrix</span>
           </div>
-          <button 
-            onClick={onClose} 
-            className="p-1 rounded-md hover:bg-gray-100 text-text-muted cursor-pointer"
+          <button
+            onClick={onClose}
+            className="p-1 rounded-md hover:bg-surface-muted text-text-muted cursor-pointer"
             title="Close sidebar"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -41,8 +41,8 @@ export default function Sidebar({ currentView, onViewChange, isOpen, onClose, te
             onClick={() => handleNavClick("board")}
             className={`text-left px-4 py-2.5 rounded-md font-medium transition-colors text-sm cursor-pointer ${
               currentView === "board"
-                ? "bg-indigo-50 text-indigo-700"
-                : "text-text-muted hover:bg-gray-50"
+                ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
+                : "text-text-muted hover:bg-surface-muted"
             }`}
           >
             Dashboard
@@ -51,14 +51,21 @@ export default function Sidebar({ currentView, onViewChange, isOpen, onClose, te
             onClick={() => handleNavClick("analytics")}
             className={`text-left px-4 py-2.5 rounded-md font-medium transition-colors text-sm cursor-pointer ${
               currentView === "analytics"
-                ? "bg-indigo-50 text-indigo-700"
-                : "text-text-muted hover:bg-gray-50"
+                ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
+                : "text-text-muted hover:bg-surface-muted"
             }`}
           >
             Analytics Panel
           </button>
-          <button className="text-left px-4 py-2.5 rounded-md font-medium text-sm text-text-muted cursor-not-allowed opacity-50">
-            Activity Feed (Coming Soon)
+          <button
+            onClick={() => handleNavClick("activity")}
+            className={`text-left px-4 py-2.5 rounded-md font-medium transition-colors text-sm cursor-pointer ${
+              currentView === "activity"
+                ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
+                : "text-text-muted hover:bg-surface-muted"
+            }`}
+          >
+            Activity Feed
           </button>
         </nav>
 
@@ -85,7 +92,7 @@ export default function Sidebar({ currentView, onViewChange, isOpen, onClose, te
               {teamMembers && teamMembers.length > 0 ? (
                 teamMembers.map((member) => (
                   <div key={member.id} className="flex items-center gap-2.5 py-1 text-sm text-text-main">
-                    <div className="w-6 h-6 rounded-full bg-indigo-50 flex items-center justify-center text-[10px] font-bold text-indigo-650 shadow-sm border border-secondary">
+                    <div className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-[10px] font-bold text-indigo-700 dark:text-indigo-300 shadow-sm border border-secondary">
                       {member.name.charAt(0).toUpperCase()}
                     </div>
                     <span className="truncate font-medium">{member.name}</span>

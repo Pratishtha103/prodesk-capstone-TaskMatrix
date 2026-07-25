@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -8,12 +7,13 @@ import { useDispatch } from "react-redux";
 import { setUser } from "@/redux/features/authSlice";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Sun, Moon } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "react-hot-toast";
 import { auth, db } from "@/services/firebase";
 import Footer from "@/components/common/Footer";
 
-export default function SignUp() {
+export default function RegisterForm() {
   const [formData, setFormData] = useState({
     role: "Member",
     username: "",
@@ -22,11 +22,13 @@ export default function SignUp() {
     confirmPassword: "",
   });
 
+  const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const router = useRouter();
   const dispatch = useDispatch();
+  const { theme, toggleTheme } = useTheme();
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -34,27 +36,44 @@ export default function SignUp() {
       ...prev,
       [name]: value,
     }));
+
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+  }
+
+  function validate() {
+    const tempErrors = {};
+    if (!formData.username.trim()) {
+      tempErrors.username = "Username is required.";
+    }
+    if (!formData.email) {
+      tempErrors.email = "Email is required.";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      tempErrors.email = "Invalid email format.";
+    }
+    if (!formData.password) {
+      tempErrors.password = "Password is required.";
+    } else if (formData.password.length < 6) {
+      tempErrors.password = "Password must be at least 6 characters.";
+    }
+    if (!formData.confirmPassword) {
+      tempErrors.confirmPassword = "Please confirm your password.";
+    } else if (formData.password !== formData.confirmPassword) {
+      tempErrors.confirmPassword = "Passwords do not match.";
+    }
+    setErrors(tempErrors);
+    return Object.keys(tempErrors).length === 0;
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (!validate()) return;
 
-    const { username, email, password, confirmPassword } = formData;
-
-    if (!username || !email || !password || !confirmPassword) {
-      toast.error("Please fill all fields.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match.");
-      return;
-    }
-
-    if (password.length < 6) {
-      toast.error("Password must be at least 6 characters long.");
-      return;
-    }
+    const { username, email, password } = formData;
 
     try {
         const userCredential = await createUserWithEmailAndPassword(
@@ -73,11 +92,7 @@ export default function SignUp() {
         const cleanEmail = (email || "").trim().toLowerCase();
         const cleanAdminEmail = (adminEmail || "").trim().toLowerCase();
 
-        console.log("Admin email configured in env:", cleanAdminEmail);
-        console.log("Registering email:", cleanEmail);
-
         const resolvedRole = (cleanAdminEmail && cleanEmail === cleanAdminEmail) ? "Admin" : "Member";
-        console.log("Resolved Role:", resolvedRole);
 
         // Store user profile details and role in Firestore
         await setDoc(doc(db, "users", userCredential.user.uid), {
@@ -95,8 +110,6 @@ export default function SignUp() {
           })
         );
 
-        console.log("Firebase user created and stored in Firestore:", userCredential.user);
-
         toast.success("Account created successfully");
 
         setFormData({
@@ -111,33 +124,53 @@ export default function SignUp() {
             router.push("/");
         }, 1500);
     } catch (err) {
-      let msg = "Signup failed. Try again.";
+      console.error(err);
       if (err.code === "auth/email-already-in-use") {
-        msg = "This email is already registered.";
+        setErrors({
+          email: "This email is already registered.",
+        });
+        toast.error("This email is already registered.");
       } else if (err.code === "auth/invalid-email") {
-        msg = "Invalid email format.";
+        setErrors({
+          email: "Invalid email format.",
+        });
+        toast.error("Invalid email format.");
       } else if (err.code === "auth/weak-password") {
-        msg = "Password should be at least 6 characters.";
+        setErrors({
+          password: "Password should be at least 6 characters.",
+        });
+        toast.error("Password should be at least 6 characters.");
+      } else {
+        toast.error("Signup failed. Try again.");
       }
-      toast.error(msg);
     }
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white font-sans">
+    <div className="flex-1 flex flex-col bg-background font-sans">
       {/* Top Header */}
-      <div className="w-full flex items-center justify-center gap-2 p-3.5 border-b border-secondary">
+      <div className="w-full flex items-center justify-between p-3.5 border-b border-secondary bg-surface shrink-0">
+        <div className="w-8" />
+        <div className="flex items-center gap-2">
           <img src="/Logo.png" alt="TaskMatrix Logo" className="w-7 h-7 object-contain" />
           <h1 className="text-xl font-semibold text-primary">TaskMatrix</h1>
+        </div>
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="p-1.5 rounded-md text-text-muted hover:bg-surface-muted hover:text-text-main transition-colors cursor-pointer"
+          title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        >
+          {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        </button>
       </div>
 
       {/* Main Container */}
-      <div className="flex-1 flex items-center justify-center p-4 bg-white">
-        <div className="w-full max-w-88 sm:max-w-96 bg-white border border-gray-200/60 rounded-xl p-6 sm:p-7 shadow-sm">
-          <h2 className="text-xl font-medium text-center text-gray-900 mb-6">Sign Up</h2>
+      <div className="flex-1 flex items-center justify-center p-4 bg-background">
+        <div className="w-full max-w-88 sm:max-w-96 bg-surface border border-secondary rounded-xl p-6 sm:p-7 shadow-sm">
+          <h2 className="text-xl font-medium text-center text-text-main mb-6">Sign Up</h2>
 
           <form onSubmit={handleSubmit} className="space-y-3.5">
-
             {/* Username Input */}
             <div>
               <input
@@ -146,8 +179,13 @@ export default function SignUp() {
                 placeholder="Username"
                 value={formData.username}
                 onChange={handleChange}
-                className="w-full rounded-lg bg-gray-100 border-none outline-none focus:ring-2 focus:ring-[#5c54e5]/20 px-3.5 py-2.5 text-gray-650 placeholder-gray-400 text-sm"
+                className={`w-full rounded-lg bg-surface-muted border outline-none focus:ring-2 focus:ring-indigo-500/50 px-3.5 py-2.5 text-text-main placeholder-text-muted text-sm ${
+                  errors.username ? "border-red-500 focus:ring-red-500/20" : "border-transparent"
+                }`}
               />
+              {errors.username && (
+                <p className="text-xs text-red-500 mt-1 pl-1">{errors.username}</p>
+              )}
             </div>
 
             {/* Email Input */}
@@ -158,56 +196,75 @@ export default function SignUp() {
                 placeholder="Email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full rounded-lg bg-gray-100 border-none outline-none focus:ring-2 focus:ring-[#5c54e5]/20 px-3.5 py-2.5 text-gray-650 placeholder-gray-400 text-sm"
+                className={`w-full rounded-lg bg-surface-muted border outline-none focus:ring-2 focus:ring-indigo-500/50 px-3.5 py-2.5 text-text-main placeholder-text-muted text-sm ${
+                  errors.email ? "border-red-500 focus:ring-red-500/20" : "border-transparent"
+                }`}
               />
+              {errors.email && (
+                <p className="text-xs text-red-500 mt-1 pl-1">{errors.email}</p>
+              )}
             </div>
 
             {/* Password Input */}
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full rounded-lg bg-gray-100 border-none outline-none focus:ring-2 focus:ring-[#5c54e5]/20 pl-3.5 pr-10 py-2.5 text-gray-650 placeholder-gray-400 text-sm"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-gray-450 hover:text-gray-600 cursor-pointer"
-                title={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? (
-                  <EyeOff className="w-4.5 h-4.5" />
-                ) : (
-                  <Eye className="w-4.5 h-4.5" />
-                )}
-              </button>
+            <div>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`w-full rounded-lg bg-surface-muted border outline-none focus:ring-2 focus:ring-indigo-500/50 pl-3.5 pr-10 py-2.5 text-text-main placeholder-text-muted text-sm ${
+                    errors.password ? "border-red-500 focus:ring-red-500/20" : "border-transparent"
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-text-muted hover:text-text-main cursor-pointer"
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4.5 h-4.5" />
+                  ) : (
+                    <Eye className="w-4.5 h-4.5" />
+                  )}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-xs text-red-500 mt-1 pl-1">{errors.password}</p>
+              )}
             </div>
 
             {/* Confirm Password Input */}
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="w-full rounded-lg bg-gray-100 border-none outline-none focus:ring-2 focus:ring-[#5c54e5]/20 pl-3.5 pr-10 py-2.5 text-gray-650 placeholder-gray-400 text-sm"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-gray-450 hover:text-gray-600 cursor-pointer"
-                title={showConfirmPassword ? "Hide password" : "Show password"}
-              >
-                {showConfirmPassword ? (
-                  <EyeOff className="w-4.5 h-4.5" />
-                ) : (
-                  <Eye className="w-4.5 h-4.5" />
-                )}
-              </button>
+            <div>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  placeholder="Confirm Password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className={`w-full rounded-lg bg-surface-muted border outline-none focus:ring-2 focus:ring-indigo-500/50 pl-3.5 pr-10 py-2.5 text-text-main placeholder-text-muted text-sm ${
+                    errors.confirmPassword ? "border-red-500 focus:ring-red-500/20" : "border-transparent"
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-text-muted hover:text-text-main cursor-pointer"
+                  title={showConfirmPassword ? "Hide password" : "Show password"}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-4.5 h-4.5" />
+                  ) : (
+                    <Eye className="w-4.5 h-4.5" />
+                  )}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-xs text-red-500 mt-1 pl-1">{errors.confirmPassword}</p>
+              )}
             </div>
 
             <button 
@@ -218,7 +275,7 @@ export default function SignUp() {
             </button>
           </form>
 
-          <p className="text-center text-xs text-gray-500 mt-5 select-none">
+          <p className="text-center text-xs text-text-muted mt-5 select-none">
             Already have an account? <Link href="/" className="text-[#5c54e5] font-semibold hover:underline">Sign In</Link>
           </p>
         </div>

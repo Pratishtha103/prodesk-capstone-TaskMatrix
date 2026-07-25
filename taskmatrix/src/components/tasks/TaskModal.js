@@ -23,7 +23,7 @@ export default function TaskModal({ isOpen, onClose, task }) {
     subtasks: [],
   });
 
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [registeredUsers, setRegisteredUsers] = useState([]);
@@ -48,7 +48,7 @@ export default function TaskModal({ isOpen, onClose, task }) {
   useEffect(() => {
     if (isOpen) {
       setSubmitting(false);
-      setError("");
+      setErrors({});
       setShowDeleteConfirm(false);
       if (task) {
         setFormData({
@@ -84,6 +84,12 @@ export default function TaskModal({ isOpen, onClose, task }) {
       ...prev,
       [name]: value,
     }));
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
   }
 
   function handleAssigneeChange(e) {
@@ -102,19 +108,39 @@ export default function TaskModal({ isOpen, onClose, task }) {
       assigneeId: selectedId,
       assigneeName: name,
     }));
+    if (errors.assigneeId) {
+      setErrors((prev) => ({
+        ...prev,
+        assigneeId: "",
+      }));
+    }
+  }
+
+  function validate() {
+    const tempErrors = {};
+    if (!formData.title.trim()) {
+      tempErrors.title = "Task title is required.";
+    }
+    if (!formData.dueDate) {
+      tempErrors.dueDate = "Due date is required.";
+    }
+    if (!formData.assigneeId) {
+      tempErrors.assigneeId = "Assignee is required.";
+    }
+    setErrors(tempErrors);
+    return Object.keys(tempErrors).length === 0;
   }
 
   async function handleGenerateSubsteps() {
     if (!formData.title.trim()) {
       const msg = "Please enter a task title first to generate sub-steps.";
-      setError(msg);
+      setErrors((prev) => ({ ...prev, title: msg }));
       toast.error(msg);
       return;
     }
 
     try {
       setAiLoadingSubtasks(true);
-      setError("");
       
       const response = await fetch("/api/ai/task-suggestion", {
         method: "POST",
@@ -145,9 +171,7 @@ export default function TaskModal({ isOpen, onClose, task }) {
       toast.success("Sub-steps generated");
     } catch (err) {
       console.error("Failed to generate AI subtasks:", err);
-      const msg = "Failed to auto-generate sub-steps. Please try again.";
-      setError(msg);
-      toast.error(msg);
+      toast.error("Failed to auto-generate sub-steps. Please try again.");
     } finally {
       setAiLoadingSubtasks(false);
     }
@@ -185,33 +209,10 @@ export default function TaskModal({ isOpen, onClose, task }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError("");
-
-    if (!formData.title.trim()) {
-      const msg = "Task title is required.";
-      setError(msg);
-      toast.error(msg);
-      return;
-    }
-
-    if (!formData.dueDate) {
-      const msg = "Due date is required.";
-      setError(msg);
-      toast.error(msg);
-      return;
-    }
-
-    if (!formData.assigneeId) {
-      const msg = "Assignee is required.";
-      setError(msg);
-      toast.error(msg);
-      return;
-    }
+    if (!validate()) return;
 
     if (!user?.uid) {
-      const msg = "User not found.";
-      setError(msg);
-      toast.error(msg);
+      toast.error("User not found.");
       return;
     }
 
@@ -224,7 +225,7 @@ export default function TaskModal({ isOpen, onClose, task }) {
           ...formData,
           createdAt: task.createdAt,
           createdBy: task.createdBy,
-        });
+        }, user, task);
         dispatch(editTask(updatedTask));
         toast.success("Task updated successfully");
       } else {
@@ -237,16 +238,13 @@ export default function TaskModal({ isOpen, onClose, task }) {
       onClose();
     } catch (err) {
       console.error(err);
-      const msg = task ? "Failed to update task." : "Failed to create task.";
-      setError(msg);
-      toast.error(msg);
+      toast.error(task ? "Failed to update task." : "Failed to create task.");
     } finally {
       setSubmitting(false);
     }
   }
 
   function handleDeleteClick() {
-    setError("");
     setShowDeleteConfirm(true);
   }
 
@@ -254,16 +252,14 @@ export default function TaskModal({ isOpen, onClose, task }) {
     if (!task) return;
     try {
       setSubmitting(true);
-      await deleteTask(task.id);
+      await deleteTask(task.id, task, user);
       dispatch(deleteTaskFromState(task.id));
       toast.success("Task deleted successfully");
       setShowDeleteConfirm(false);
       onClose();
     } catch (err) {
       console.error(err);
-      const msg = "Failed to delete task.";
-      setError(msg);
-      toast.error(msg);
+      toast.error("Failed to delete task.");
     } finally {
       setSubmitting(false);
     }
@@ -271,7 +267,7 @@ export default function TaskModal({ isOpen, onClose, task }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-lg rounded-xl bg-white p-5 sm:p-6 shadow-lg max-h-[95vh] overflow-y-auto">
+      <div className="w-full max-w-lg rounded-xl bg-surface p-5 sm:p-6 shadow-lg max-h-[95vh] overflow-y-auto">
         <h2 className="mb-4 text-xl font-semibold">
           {task ? "Edit Task" : "Create Task"}
         </h2>
@@ -297,8 +293,13 @@ export default function TaskModal({ isOpen, onClose, task }) {
               value={formData.title}
               disabled={user?.role !== "Admin"}
               onChange={handleChange}
-              className="w-full rounded-md border border-secondary px-3 py-2 text-text-main bg-white disabled:bg-gray-100 disabled:text-text-muted"
+              className={`w-full rounded-md border px-3 py-2 text-text-main bg-surface disabled:bg-surface-muted disabled:text-text-muted ${
+                errors.title ? "border-red-500 focus:ring-red-500/20" : "border-secondary"
+              }`}
             />
+            {errors.title && (
+              <p className="text-xs text-red-500 mt-1 pl-1">{errors.title}</p>
+            )}
           </div>
 
           <div>
@@ -311,7 +312,7 @@ export default function TaskModal({ isOpen, onClose, task }) {
               value={formData.description}
               disabled={user?.role !== "Admin"}
               onChange={handleChange}
-              className="w-full rounded-md border border-secondary px-3 py-2 text-text-main bg-white disabled:bg-gray-100 disabled:text-text-muted"
+              className="w-full rounded-md border border-secondary px-3 py-2 text-text-main bg-surface disabled:bg-surface-muted disabled:text-text-muted"
               rows={4}
             />
           </div>
@@ -326,7 +327,7 @@ export default function TaskModal({ isOpen, onClose, task }) {
                 value={formData.priority}
                 disabled={user?.role !== "Admin"}
                 onChange={handleChange}
-                className="w-full rounded-md border border-secondary px-3 py-2 text-text-main bg-white disabled:bg-gray-100 disabled:text-text-muted"
+                className="w-full rounded-md border border-secondary px-3 py-2 text-text-main bg-surface disabled:bg-surface-muted disabled:text-text-muted"
               >
                 <option value="Low">Low</option>
                 <option value="Medium">Medium</option>
@@ -342,7 +343,7 @@ export default function TaskModal({ isOpen, onClose, task }) {
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full rounded-md border border-secondary px-3 py-2 text-text-main bg-white"
+                className="w-full rounded-md border border-secondary px-3 py-2 text-text-main bg-surface"
               >
                 <option value="todo">To Do</option>
                 <option value="inprogress">In Progress</option>
@@ -361,7 +362,9 @@ export default function TaskModal({ isOpen, onClose, task }) {
                 value={formData.assigneeId}
                 disabled={user?.role !== "Admin"}
                 onChange={handleAssigneeChange}
-                className="w-full rounded-md border border-secondary px-3 py-2 text-text-main bg-white disabled:bg-gray-100 disabled:text-text-muted"
+                className={`w-full rounded-md border px-3 py-2 text-text-main bg-surface disabled:bg-surface-muted disabled:text-text-muted ${
+                  errors.assigneeId ? "border-red-500 focus:ring-red-500/20" : "border-secondary"
+                }`}
               >
                 <option value="">Select Assignee</option>
                 {user && (
@@ -377,6 +380,9 @@ export default function TaskModal({ isOpen, onClose, task }) {
                     </option>
                   ))}
               </select>
+              {errors.assigneeId && (
+                <p className="text-xs text-red-500 mt-1 pl-1">{errors.assigneeId}</p>
+              )}
             </div>
 
             <div>
@@ -389,8 +395,13 @@ export default function TaskModal({ isOpen, onClose, task }) {
                 value={formData.dueDate}
                 disabled={user?.role !== "Admin"}
                 onChange={handleChange}
-                className="w-full rounded-md border border-secondary px-3 py-2 text-text-main bg-white disabled:bg-gray-100 disabled:text-text-muted"
+                className={`w-full rounded-md border px-3 py-2 text-text-main bg-surface disabled:bg-surface-muted disabled:text-text-muted ${
+                  errors.dueDate ? "border-red-500 focus:ring-red-500/20" : "border-secondary"
+                }`}
               />
+              {errors.dueDate && (
+                <p className="text-xs text-red-500 mt-1 pl-1">{errors.dueDate}</p>
+              )}
             </div>
           </div>
 
@@ -413,10 +424,10 @@ export default function TaskModal({ isOpen, onClose, task }) {
             </div>
 
             {/* List of subtasks */}
-            <div className="space-y-1 max-h-40 overflow-y-auto mb-3 border border-secondary rounded-lg p-2 bg-gray-50/50">
+            <div className="space-y-1 max-h-40 overflow-y-auto mb-3 border border-secondary rounded-lg p-2 bg-surface-muted">
               {formData.subtasks && formData.subtasks.length > 0 ? (
                 formData.subtasks.map((subtask) => (
-                  <div key={subtask.id} className="flex items-center justify-between gap-2 p-1 rounded hover:bg-white transition-colors">
+                  <div key={subtask.id} className="flex items-center justify-between gap-2 p-1 rounded hover:bg-surface transition-colors">
                     <label className="flex items-center gap-2.5 text-sm cursor-pointer select-none text-text-main flex-1 truncate">
                       <input
                         type="checkbox"
@@ -432,7 +443,7 @@ export default function TaskModal({ isOpen, onClose, task }) {
                       <button
                         type="button"
                         onClick={() => handleDeleteSubtask(subtask.id)}
-                        className="text-text-muted hover:text-red-600 p-1 rounded hover:bg-gray-100 transition-colors cursor-pointer"
+                        className="text-text-muted hover:text-red-600 p-1 rounded hover:bg-surface-muted transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -458,12 +469,12 @@ export default function TaskModal({ isOpen, onClose, task }) {
                       handleAddSubtask();
                     }
                   }}
-                  className="flex-1 rounded-md border border-secondary px-3 py-1.5 text-xs text-text-main bg-white"
+                  className="flex-1 rounded-md border border-secondary px-3 py-1.5 text-xs text-text-main bg-surface"
                 />
                 <button
                   type="button"
                   onClick={handleAddSubtask}
-                  className="border border-secondary p-1.5 rounded-md text-text-main hover:bg-gray-50 transition-colors flex items-center justify-center cursor-pointer"
+                  className="border border-secondary p-1.5 rounded-md text-text-main hover:bg-surface-muted transition-colors flex items-center justify-center cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -487,7 +498,7 @@ export default function TaskModal({ isOpen, onClose, task }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full sm:w-auto text-center rounded-md border border-secondary px-4 py-2 hover:bg-gray-50 transition-colors text-text-main cursor-pointer"
+                className="w-full sm:w-auto text-center rounded-md border border-secondary px-4 py-2 hover:bg-surface-muted transition-colors text-text-main cursor-pointer"
               >
                 Cancel
               </button>
@@ -512,7 +523,7 @@ export default function TaskModal({ isOpen, onClose, task }) {
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl border border-secondary space-y-4">
+          <div className="w-full max-w-sm rounded-xl bg-surface p-6 shadow-xl border border-secondary space-y-4">
             <div className="flex items-center gap-3 text-red-600">
               <svg
                 className="w-6 h-6"
@@ -536,7 +547,7 @@ export default function TaskModal({ isOpen, onClose, task }) {
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(false)}
-                className="rounded-md border border-secondary px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-text-main"
+                className="rounded-md border border-secondary px-4 py-2 hover:bg-surface-muted transition-colors text-sm text-text-main"
               >
                 Cancel
               </button>

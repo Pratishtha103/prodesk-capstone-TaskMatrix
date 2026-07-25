@@ -10,9 +10,9 @@ export default function EmptyState({
   showCta = false,
 }) {
   return (
-    <div className="flex flex-col items-center justify-center text-center p-6 bg-white rounded-xl border border-secondary shadow-sm select-none max-w-sm mx-auto my-4 transition-all duration-200">
+    <div className="flex flex-col items-center justify-center text-center p-6 bg-surface rounded-xl border border-secondary shadow-sm select-none max-w-sm mx-auto my-4 transition-all duration-200">
       {/* Icon Area */}
-      <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-650 mb-4 shadow-sm border border-indigo-100/50">
+      <div className="w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-4 shadow-sm border border-secondary">
         <Icon className="w-6 h-6" />
       </div>
 
@@ -31,7 +31,7 @@ export default function EmptyState({
         <button
           type="button"
           onClick={onCtaClick}
-          className="rounded-md border bg-black text-white hover:bg-black/90 px-4 py-2 text-xs font-semibold transition-colors shadow-sm cursor-pointer"
+          className="rounded-md border bg-black dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white hover:bg-black/90 px-4 py-2 text-xs font-semibold transition-colors shadow-sm cursor-pointer"
         >
           {ctaText}
         </button>

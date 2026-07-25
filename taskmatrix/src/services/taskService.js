@@ -12,6 +12,7 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import { logActivity } from "./activityService";
 
 const tasksRef = collection(db, "tasks");
 
@@ -63,10 +64,13 @@ export async function createTask(taskData, user) {
   const docRef = await addDoc(tasksRef, payload);
   const savedDoc = await getDoc(doc(db, "tasks", docRef.id));
 
+  // Log activity
+  await logActivity("created", payload.title, null, payload.status, user);
+
   return formatTask(savedDoc);
 }
 
-export async function updateTask(taskId, updatedData) {
+export async function updateTask(taskId, updatedData, user, oldTask) {
   const taskDocRef = doc(db, "tasks", taskId);
   const payload = {
     title: updatedData.title,
@@ -81,6 +85,20 @@ export async function updateTask(taskId, updatedData) {
 
   await updateDoc(taskDocRef, payload);
 
+  // Log activity if user and oldTask context is provided
+  if (user && oldTask) {
+    const isOnlyStatusChange = oldTask.status !== updatedData.status && oldTask.title === updatedData.title;
+    const action = isOnlyStatusChange ? "moved" : "edited";
+    
+    await logActivity(
+      action,
+      updatedData.title,
+      oldTask.status,
+      updatedData.status,
+      user
+    );
+  }
+
   return {
     id: taskId,
     ...payload,
@@ -89,9 +107,13 @@ export async function updateTask(taskId, updatedData) {
   };
 }
 
-export async function deleteTask(taskId) {
+export async function deleteTask(taskId, task, user) {
   const taskDocRef = doc(db, "tasks", taskId);
   await deleteDoc(taskDocRef);
+
+  if (user && task) {
+    await logActivity("deleted", task.title, task.status, null, user);
+  }
 }
 
 export async function getAllUsers() {
