@@ -267,7 +267,7 @@ export default function TaskModal({ isOpen, onClose, task }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-lg rounded-xl bg-surface p-5 sm:p-6 shadow-lg max-h-[95vh] overflow-y-auto">
+      <div className="w-full max-w-lg rounded-xl bg-surface p-4 sm:p-6 shadow-lg max-h-[95vh] overflow-y-auto">
         <h2 className="mb-4 text-xl font-semibold">
           {task ? "Edit Task" : "Create Task"}
         </h2>
@@ -281,7 +281,7 @@ export default function TaskModal({ isOpen, onClose, task }) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <div>
             <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">
               Task Title
@@ -313,7 +313,7 @@ export default function TaskModal({ isOpen, onClose, task }) {
               disabled={user?.role !== "Admin"}
               onChange={handleChange}
               className="w-full rounded-md border border-secondary px-3 py-2 text-text-main bg-surface disabled:bg-surface-muted disabled:text-text-muted"
-              rows={4}
+              rows={3}
             />
           </div>
 
@@ -405,8 +405,8 @@ export default function TaskModal({ isOpen, onClose, task }) {
             </div>
           </div>
 
-          <div className="pt-2">
-            <div className="flex items-center justify-between mb-2">
+          <div className="pt-1 sm:pt-2">
+            <div className="flex items-center justify-between mb-1 sm:mb-2">
               <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider">
                 Subtasks / Checklist
               </label>
@@ -424,16 +424,16 @@ export default function TaskModal({ isOpen, onClose, task }) {
             </div>
 
             {/* List of subtasks */}
-            <div className="space-y-1 max-h-40 overflow-y-auto mb-3 border border-secondary rounded-lg p-2 bg-surface-muted">
+            <div className="space-y-1 mb-2 border border-secondary rounded-lg p-1.5 sm:p-2 bg-surface-muted">
               {formData.subtasks && formData.subtasks.length > 0 ? (
                 formData.subtasks.map((subtask) => (
-                  <div key={subtask.id} className="flex items-center justify-between gap-2 p-1 rounded hover:bg-surface transition-colors">
-                    <label className="flex items-center gap-2.5 text-sm cursor-pointer select-none text-text-main flex-1 truncate">
+                  <div key={subtask.id} className="flex items-start justify-between gap-2 p-0.5 sm:p-1 rounded hover:bg-surface transition-colors">
+                    <label className="flex items-start gap-2.5 text-sm cursor-pointer select-none text-text-main flex-1">
                       <input
                         type="checkbox"
                         checked={subtask.completed}
                         onChange={() => handleToggleSubtask(subtask.id)}
-                        className="rounded border-secondary text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
+                        className="mt-0.5 rounded border-secondary text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer shrink-0"
                       />
                       <span className={subtask.completed ? "line-through text-text-muted text-xs font-medium" : "text-text-main text-xs font-medium"}>
                         {subtask.text}
@@ -443,7 +443,7 @@ export default function TaskModal({ isOpen, onClose, task }) {
                       <button
                         type="button"
                         onClick={() => handleDeleteSubtask(subtask.id)}
-                        className="text-text-muted hover:text-red-600 p-1 rounded hover:bg-surface-muted transition-colors cursor-pointer"
+                        className="text-text-muted hover:text-red-600 p-1 rounded hover:bg-surface-muted transition-colors cursor-pointer shrink-0"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
